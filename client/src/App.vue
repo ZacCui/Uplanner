@@ -282,6 +282,7 @@ export default {
     save() {
       const parsed = JSON.stringify(this.years);
       localStorage.setItem('years', parsed);
+      localStorage.setItem('major', this.major_search_string);
       alert('Plan saved');
     },
     updateCourses(courses, semesterIndex, yearIndex) {
@@ -360,6 +361,8 @@ export default {
         this.all_majors = [{label: 'Clear', value: ''}].concat(response.data);
       });
     if (localStorage.getItem('years')) {
+      if(localStorage.getItem('major'))
+        this.search_major(localStorage.getItem('major'));
       try {
         this.years = JSON.parse(localStorage.getItem('years'));
         this.loaded_local_storage = true;
