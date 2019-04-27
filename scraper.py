@@ -7,6 +7,7 @@ from tqdm import tqdm
 from queue import Queue
 from threading import Thread
 
+domain = 'https://www.handbook.unsw.edu.au'
 base_url = 'https://www.handbook.unsw.edu.au/Undergraduate/courses/2019/'
 prereq_re = re.compile(r'<div>(Prerequisite: .*)<\/div>')
 COURSE_KEYS = ['URL_MAP_FOR_CONTENT', 'code', 'contact_hours', 'credit_points',
@@ -49,6 +50,8 @@ def parse_local():
             course['study_level'] == 'Undergraduate'}
     processed_courses = {}
     for code, course in courses.items():
+        if 'URL_MAP_FOR_CONTENT' in course:
+            course['url'] = domain + course['URL_MAP_FOR_CONTENT']
         try:
             with open('webpages/{}.html'.format(course['code'])) as html:
                 prereq = prereq_re.findall(html.read())
