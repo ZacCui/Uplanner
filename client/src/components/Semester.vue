@@ -17,6 +17,10 @@
           :course="course"
           :isRemoveable="true"
           :onRemove="onRemoveCourse"
+          v-on:hoverCourse="hover"
+          v-on:stopHoverCourse="stopHover()"
+          :prereqs="prereqs"
+          :cores="cores"
         />
       </draggable>
     </q-card-main>
@@ -32,7 +36,9 @@ export default {
   props: [
     'value',
     'name',    
-    'group'
+    'group',
+    'prereqs',
+    'cores'
   ],
   components: {
     draggable,
@@ -44,6 +50,12 @@ export default {
     }
   },
   methods: {
+    hover(code) {
+      this.$emit('hoverCourse', code);
+    },
+    stopHover() {
+      this.$emit('stopHoverCourse');
+    },
     courseString: function (course) {
       return `${course.code} - ${course.name}`
     },

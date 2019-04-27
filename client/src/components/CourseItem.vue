@@ -4,11 +4,22 @@
     separator
     link
     @click.native="loadCourseDetails(); showModal = !showModal"
+    @mouseover.native="hover()"
+    @mouseleave.native="stopHover()"
   >
+		<q-chip small v-if="cores.includes(course.code)" color="primary">
+			Core
+		</q-chip>
+
+		<q-chip small v-if="prereqs.includes(course.code)" color="secondary">
+      Prereq
+		</q-chip>
     <q-item-main>
       <small>{{stripString(courseString(course), lengthLimit)}}</small>
       <q-tooltip anchor="bottom middle" self="top middle">
         {{courseString(course)}}
+        <br>
+        {{details.enrol_conditions}}
       </q-tooltip>
     </q-item-main>
     <q-item-side right v-if="isRemoveable">
@@ -24,18 +35,9 @@
         </q-toolbar>
 
         <div class="layout-padding">
-          <p class="q-title">Code</p>
-          <p>{{details.code}}</p>
-          
-          <p class="q-title">Name</p>
-          <p>{{details.name}}</p>
-          
           <p class="q-title">Study Level</p>
           <p>{{details.study_level}}</p>
           
-          <p class="q-title">Description</p>
-          <div v-html="details.description"></div>
-
           <p class="q-title">Contact Hours</p>      
           <p>{{details.contact_hours}}</p>
 
@@ -43,7 +45,19 @@
           <p>{{details.credit_points}}</p>
 
           <p class="q-title">Teaching Period</p>
-          <div v-html="details.teaching_period_display"></div>
+          <p v-html="details.teaching_period_display"></p>
+
+          <p class="q-title">Enrol Conditions</p>
+          <p v-html="details.enrol_conditions"></p>
+
+          <p class="q-title">Description</p>
+          <p v-html="details.description"></p>
+
+          <p class="q-title">Offical Handbook</p>
+          <a v-if="details.url" target="_blank" :href="details.url">{{details.url}}</a>
+          <a v-if="!details.url">No handbook entry</a>
+
+
         </div>        
       </q-modal-layout>
     </q-modal>
@@ -71,6 +85,14 @@ export default {
     onRemove: {
       type: Function,
       default: function () { }
+    },
+    prereqs: {
+      type: Array,
+      default: () => []
+    },
+    cores: {
+      type: Array,
+      default: () => []
     }
   },
   data () {
@@ -81,6 +103,13 @@ export default {
     }
   },
   methods: {
+    hover: function (){
+      this.loadCourseDetails();
+      this.$emit('hoverCourse', this.course.code);
+    },
+    stopHover() {
+      this.$emit('stopHoverCourse');
+    },
     courseString: function (course) {
       return `${course.code} - ${course.name}`
     },
@@ -101,7 +130,6 @@ export default {
         .then(res => {
           this.details = res.data
           // eslint-disable-next-line
-          console.log(res.data)
           this.isLoaded = true
         })
     }

@@ -43,6 +43,8 @@
             :key="course.code"
             :course="course"
             :lengthLimit="40"
+            :prereqs="prereqs"
+            :cores="major_core_courses"
           />
         </transition-group>
       </draggable>
@@ -56,6 +58,10 @@
           v-model="years[index]"
           :opened="index === 0"
           group="courses"
+          v-on:hoverCourse="hover"
+          v-on:stopHoverCourse="stop_hover"
+          :cores="major_core_courses"
+          :prereqs="prereqs"
         />
       </q-list>  
     </q-page-container>
@@ -69,6 +75,7 @@ import axios from 'axios'
 import Year from '@/components/Year.vue'
 import CourseItem from '@/components/CourseItem.vue'
 
+
 export default {
   name: 'LayoutDefault',
   components: {
@@ -81,6 +88,8 @@ export default {
       selected_courses: [],
       major_search_string: "",
       major_core_courses: [],
+      hover_course: "",
+      prereqs: [],
       showLeft: true,
       searchCourse: "",
       all_majors: [],
@@ -146,6 +155,26 @@ export default {
     }
   },
   methods: {
+    hover(code) {
+      let vue = this;
+      vue.hover_course = code;
+      setTimeout(() => {
+        if(vue.hover_course != code)
+          return;
+        axios
+          .get(`http://localhost:5000/api/course-detail/${code}`)
+          .then(res => {
+            let re = /[A-Z]{4}[0-9]{4}/g;
+            if(res.data.enrol_conditions)
+              this.prereqs = res.data.enrol_conditions.match(re)
+            if(!this.prereqs)
+              this.prereqs = [];
+          })
+      }, 1000);
+    },
+    stop_hover() {
+      this.hover_course = "";
+    },
     search_major(terms) {
       this.major_search_string = terms;
       let code = terms.split(' - ')[0];
@@ -154,16 +183,6 @@ export default {
           this.major_core_courses = res.data.core_courses;
         })
     },
-    /*
-    major_selected(code) {
-      // this.selected_major = item.code;
-      axios
-        .get(API_BASE + '/api/major-detail/' + code)
-        .then(response => {
-          this.major_core_courses = response.data.core_courses;
-        });
-    },
-    */
     // eslint-disable-next-line
     onMoveCallback: function(event) {
       if(event.from === event.to){
@@ -177,7 +196,12 @@ export default {
       let cores = []
       if(this.major_core_courses)
         cores = this.all_courses
-          .filter(course => this.major_core_courses.includes(course.code));
+          .filter(course => this.major_core_courses.includes(course.code))
+          .map(course => {course.core = true; return course});
+
+      cores = cores.concat(this.all_courses
+        .filter(course => this.prereqs.includes(course.code))
+        .map(course => {course.prereq = true; return course}));
 
       let matched = this.all_courses.filter(course => {
         if(!this.searchCourse)
