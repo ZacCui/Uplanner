@@ -13,13 +13,13 @@
       </q-toolbar>
     </q-layout-header>
 
-    <!-- course detail modal --> 
     <modal name="course_details" @close="showModal = false">
       <h3 slot="header">test</h3>
     </modal>
 
-    <!-- Left Side Drawer -->
-    <q-layout-drawer side="left" v-model="showLeft">    
+    <q-layout-drawer side="left" v-model="showLeft">
+      <q-input v-model="searchCourse" float-label="Search Course" 
+        placeholder="Enter course name or course code" />
       <draggable
         v-model="courses"
         :group="{
@@ -47,49 +47,15 @@
       </draggable>
     </q-layout-drawer>
 
-    <!-- sub-routes get injected here: -->
     <q-page-container>
       <q-list>
-        <q-collapsible label="Year 1" opened>
-          <div style="display: flex; justify-content: center;">
-            <Semester
-              name="Semester 1"
-              v-model="semester1Courses"
-              group="courses"
-              style="margin-right: 20px;"
-            />
-
-          <q-card style="width: 400px; margin-right: 20px;">
-            <q-card-title>
-              Semester 2
-            </q-card-title>
-            <q-card-separator />
-            <q-card-main>
-              Card Content
-            </q-card-main>
-          </q-card>
-
-          <q-card style="width: 400px;">
-            <q-card-title>
-              Semester 3
-            </q-card-title>
-            <q-card-separator />
-            <q-card-main>
-              Card Content
-            </q-card-main>
-          </q-card>
-          </div>        
-        </q-collapsible>
-
-        <q-collapsible label="Year 2" opened>
-          <Semester
-            name="Good"
-          />
-        </q-collapsible>
-
-        <q-collapsible label="Year 3" opened>
-
-        </q-collapsible>
+        <Year
+          v-for="(year, index) in years"
+          :key="index"
+          v-model="years[index]"
+          :opened="index === 0"
+          group="courses"
+        />
       </q-list>  
     </q-page-container>
   </q-layout>
@@ -98,13 +64,13 @@
 <script>
 import draggable from 'vuedraggable'
 import axios from 'axios'
-import Semester from '@/components/Semester.vue'
+import Year from '@/components/Year.vue'
 
 export default {
   name: 'LayoutDefault',
   components: {
-    draggable,
-    Semester
+    Year,
+    draggable
   },
   data () {
     return {
@@ -118,9 +84,59 @@ export default {
           name: ""
         }
       ],
-      semester1Courses: [
-        
-      ],  
+      years: [
+        {
+          name: 'Year 1',
+          semesters: [
+            {
+              name: 'Semester 1',
+              courses: []              
+            },
+            {
+              name: 'Semester 2',
+              courses: []              
+            },
+            {
+              name: 'Semester 3',
+              courses: []              
+            },
+          ]
+        },
+        {
+          name: 'Year 2',
+          semesters: [
+            {
+              name: 'Semester 1',
+              courses: []              
+            },
+            {
+              name: 'Semester 2',
+              courses: []              
+            },
+            {
+              name: 'Semester 3',
+              courses: []              
+            },
+          ]
+        },
+        {
+          name: 'Year 3',
+          semesters: [
+            {
+              name: 'Semester 1',
+              courses: []              
+            },
+            {
+              name: 'Semester 2',
+              courses: []              
+            },
+            {
+              name: 'Semester 3',
+              courses: []              
+            },
+          ]
+        }
+      ]
     }
   },
   methods: {
@@ -151,11 +167,29 @@ export default {
   computed: {
     courses: function() {
       return this.all_courses.filter(course => {
-        return course.code.toLowerCase().includes(this.searchCourse.toLowerCase()) ||
+        let matched = course.code.toLowerCase().includes(this.searchCourse.toLowerCase()) ||
           course.name.toLowerCase().includes(this.searchCourse.toLowerCase());
-      }).slice(0, 10).filter(course => {
-        return !this.semester1Courses.includes(course);
-      });
+
+        let selected = false;
+        for (const year of this.years) {
+          for (const semester of year.semesters) {
+            for (const c of semester.courses) {
+              if (c.code === course.code) {
+                selected = true;
+                break;
+              }
+            }
+            if (selected) {
+              break;
+            }
+          }
+          if (selected) {
+            break;
+          }
+        }
+        
+        return matched && !selected;
+      }).slice(0, 10);
     }
   },
   mounted () {

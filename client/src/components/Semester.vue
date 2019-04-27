@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 400px;">
+  <q-card style="width: 400px; min-height: 100px;">
     <q-card-title>
       {{name}}
     </q-card-title>
@@ -9,7 +9,7 @@
         v-model="courses"
         :group="group"
         @input="emitChange"
-        :move="onMove"
+        style="min-height: 100px;"
       >
         <p v-if="false">Drag a course here</p>
         <q-item
@@ -70,11 +70,6 @@ export default {
     },
     emitChange: function () {
       this.$emit('input', this.courses)
-    },
-    /* eslint-disable */
-    onMove: function (event) {
-      console.log(event.from)
-      console.log(event.to)
     }
   }
 }
