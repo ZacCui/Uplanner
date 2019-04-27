@@ -10,6 +10,8 @@
         :group="group"
         @input="emitChange"
         style="min-height: 100px;"
+        @start="startDragging($event)"
+        @end="stopDragging()"
       >
         <CourseItem 
           v-for="course in courses"
@@ -39,7 +41,9 @@ export default {
     'group',
     'prereqs',
     'cores',
-    'highlight'
+    'highlight',
+    'index',
+    'loaded_local_storage'
   ],
   components: {
     draggable,
@@ -57,6 +61,12 @@ export default {
     stopHover() {
       this.$emit('stopHoverCourse');
     },
+    startDragging(evt) {
+      this.$emit('startDragging', evt);
+    },
+    stopDragging() {
+      this.$emit('stopDragging');
+    },
     courseString: function (course) {
       return `${course.code} - ${course.name}`
     },
@@ -68,12 +78,22 @@ export default {
       return str.substr(0, limit) + "..."
     },
     onRemoveCourse: function (removedCourse) {
+      // filter in place
+      // filterInPlace(this.courses, course => removedCourse.code !== course.code)
       this.courses = this.courses.filter(course => removedCourse.code !== course.code);
       this.emitChange();
     },
     emitChange: function () {
-      this.$emit('input', this.courses)
+      this.$emit('input', this.courses, this.index)
     }
+  },
+  watch: {
+    loaded_local_storage: {
+      handler() {
+        this.courses = this.value;
+      }
+    }
+  
   }
 }
 </script>

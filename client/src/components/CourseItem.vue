@@ -47,7 +47,7 @@
           <p class="q-title">Teaching Period</p>
           <p v-html="details.teaching_period_display"></p>
 
-          <p class="q-title">Enrol Conditions</p>
+          <p v-if="details.enrol_conditions" class="q-title">Enrol Conditions</p>
           <p v-html="details.enrol_conditions"></p>
 
           <p class="q-title">Description</p>

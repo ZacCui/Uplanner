@@ -17,14 +17,20 @@
         :highlight="highlightTerms.includes(semester.name)"
         v-for="(semester, index) in year.semesters"
         :key="index"
+        :index="index"
         :name="semester.name"
         :group="group"
-        v-model="semester.courses"
+        :value="semester.courses"
+        v-on:input="emitChange"
+        :courses="semester.courses"
         style="margin-right: 20px;"
         v-on:hoverCourse="hover"
         v-on:stopHoverCourse="stopHover()"
         :prereqs="prereqs"
         :cores="cores"
+        v-on:startDragging="startDragging"
+        v-on:stopDragging="stopDragging"
+        :loaded_local_storage='loaded_local_storage'
       />
     </div>
   </q-collapsible>
@@ -43,17 +49,24 @@ export default {
     'cores',
     'index',
     'years',
-    'highlightTerms'
+    'highlightTerms',
+    'loaded_local_storage'
   ],
   components: {
     Semester
   },
-  data() {
-    return {
-      year: this.value
+  computed: {
+    year() {
+      return this.value
     }
   },
   methods: {
+    startDragging(evt) {
+      this.$emit('startDragging', evt);
+    },
+    stopDragging() {
+      this.$emit('stopDragging');
+    },
     deleteYear() {
       this.$emit('deleteYear');
     },
@@ -63,8 +76,8 @@ export default {
     stopHover() {
       this.$emit('stopHoverCourse');
     },
-    emitChange: function() {
-      this.$emit('input', this.year);
+    emitChange: function(courses, semesterIndex) {
+      this.$emit('input', courses, semesterIndex, this.index);
     }
   }
 }

@@ -20,6 +20,7 @@
       <!-- major search input -->
       <q-select
         filter
+        v-model="major_search_string"
         :display-value="stripString(major_search_string, 30)"
         :options="all_majors"
         @input="search_major"
@@ -55,18 +56,19 @@
 
     <!-- right panel -->
     <q-page-container>
-      <q-alert color="deep-purple-7" >
-        <div class="text-white">
-          Enrolled credits: {{total_credits}}
-        </div>
-      </q-alert>
+      <q-toolbar width=window.width color="deep-purple-7">
+          <q-toolbar-title>
+            Enrolled credits: <b>{{total_credits}}</b>
+          </q-toolbar-title>
+          <q-btn @click="save()" class="float-right" label="Save results" />
+    </q-toolbar>
       <q-list>
         <Year
-          v-for="(year, index) in years"
+          v-for="(_year, index) in years"
           :key="index"
           :index="index"
           :years="years.length"
-          v-model="years[index]"
+          :value="_year"
           :opened="index === 0"
           group="courses"
           v-on:hoverCourse="hover"
@@ -75,6 +77,10 @@
           :prereqs="prereqs"
           v-on:deleteYear="deleteYear"
           :highlightTerms="dragging_course_periods"
+          v-on:startDragging="startDragging"
+          v-on:stopDragging="stopDragging"
+          :loaded_local_storage="loaded_local_storage"
+          v-on:input="updateCourses"
         />
       </q-list>  
       <q-btn
@@ -106,6 +112,7 @@ export default {
   },
   data () {
     return {
+      loaded_local_storage: false,
       selected_courses: [],
       major_search_string: "",
       major_core_courses: [],
@@ -271,7 +278,17 @@ export default {
         return false
       }        
       return true
+    },
+    save() {
+      const parsed = JSON.stringify(this.years);
+      localStorage.setItem('years', parsed);
+      alert('Plan saved');
+    },
+    updateCourses(courses, semesterIndex, yearIndex) {
+      this.years[yearIndex].semesters[semesterIndex].courses = courses;
     }
+
+
   },
   computed: {
     total_credits() {
@@ -342,8 +359,15 @@ export default {
       .then(response => {
         this.all_majors = [{label: 'Clear', value: ''}].concat(response.data);
       });
-  }
-
+    if (localStorage.getItem('years')) {
+      try {
+        this.years = JSON.parse(localStorage.getItem('years'));
+        this.loaded_local_storage = true;
+      } catch(e) {
+        localStorage.removeItem('years');
+      }
+    }
+  },
 }
 </script>
 
