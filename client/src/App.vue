@@ -20,10 +20,15 @@
 
     <!-- Left Side Drawer -->
     <q-layout-drawer side="left" v-model="showLeft">    
-      <q-input v-model="searchCourse" float-label="Search Course" 
-        placeholder="Enter course name or course code" />
-
-      <draggable v-model="courses" group="courses">
+      <draggable
+        v-model="courses"
+        :group="{
+          name: 'courses',
+          pull: 'clone',
+          put: false
+        }"
+        :move="onMoveCallback"
+      >
         <transition-group>
           <q-item
             v-for="course in courses"
@@ -47,35 +52,14 @@
       <q-list>
         <q-collapsible label="Year 1" opened>
           <div style="display: flex; justify-content: center;">
-            <q-card style="width: 300px; margin-right: 20px;">
-            <q-card-title>
-              Semester 1
-            </q-card-title>
-            <q-card-separator />
-            <q-card-main>
-              <draggable v-model="semester1Courses" group="courses">
-                <div v-if="semester1Courses.length === 0">
-                  <p>Drag a course here</p>
-                </div>
-                <div v-else>
-                  <q-item
-                    v-for="course in semester1Courses"
-                    :key = "course.code"
-                    highlight
-                    separator
-                    link
-                  >
-                    <small>{{stripString(courseString(course), 35)}}</small>
-                    <q-tooltip anchor="bottom middle" self="top middle">
-                      {{courseString(course)}}
-                    </q-tooltip>
-                  </q-item>
-                </div>           
-              </draggable>
-            </q-card-main>
-          </q-card>
+            <Semester
+              name="Semester 1"
+              v-model="semester1Courses"
+              group="courses"
+              style="margin-right: 20px;"
+            />
 
-          <q-card style="width: 300px; margin-right: 20px;">
+          <q-card style="width: 400px; margin-right: 20px;">
             <q-card-title>
               Semester 2
             </q-card-title>
@@ -85,7 +69,7 @@
             </q-card-main>
           </q-card>
 
-          <q-card style="width: 300px;">
+          <q-card style="width: 400px;">
             <q-card-title>
               Semester 3
             </q-card-title>
@@ -98,7 +82,9 @@
         </q-collapsible>
 
         <q-collapsible label="Year 2" opened>
-
+          <Semester
+            name="Good"
+          />
         </q-collapsible>
 
         <q-collapsible label="Year 3" opened>
@@ -111,12 +97,14 @@
 
 <script>
 import draggable from 'vuedraggable'
-import axios from 'axios';
+import axios from 'axios'
+import Semester from '@/components/Semester.vue'
 
 export default {
   name: 'LayoutDefault',
   components: {
-    draggable
+    draggable,
+    Semester
   },
   data () {
     return {
@@ -141,6 +129,13 @@ export default {
     },
     hide () {
       this.$modal.hide('course_details');
+    },
+    // eslint-disable-next-line
+    onMoveCallback: function(event) {
+      if(event.from === event.to){
+        return false
+      }        
+      return true
     },
     courseString: function (course) {
       return `${course.code} - ${course.name}`
