@@ -3,6 +3,7 @@
     highlight
     separator
     link
+    style='padding: 5px 10px;'
     @click.native="loadCourseDetails(); showModal = !showModal"
     @mouseover.native="hover()"
     @mouseleave.native="stopHover()"
@@ -14,7 +15,7 @@
 		<q-chip dense v-if="prereqs.includes(course.code)" color="secondary">
       Prereq
 		</q-chip>
-    <q-item-main>
+    <q-item-main style="margin-left: 3px">
       <small>{{stripString(courseString(course), lengthLimit)}}</small>
       <q-tooltip anchor="bottom middle" self="top middle">
         {{courseString(course)}}

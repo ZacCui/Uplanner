@@ -8,7 +8,7 @@
           icon="menu"
         />
         <q-toolbar-title>
-          Course Planner
+          Uplanner - Uni Course Planner
         </q-toolbar-title>
         <img src="favicon.ico" />
       </q-toolbar>
@@ -19,6 +19,7 @@
 
       <!-- major search input -->
       <q-select
+        style="padding-left: 5px"
         filter
         v-model="major_search_string"
         :display-value="stripString(major_search_string, 30)"
@@ -28,7 +29,9 @@
       />
 
       <!-- course serach input -->
-      <q-input v-model="searchCourse" float-label="Search Course" 
+      <q-input 
+        style="padding-left: 5px"
+        v-model="searchCourse" float-label="Search Course" 
         placeholder="Enter course name or course code" />
       <draggable
         v-model="courses"
@@ -60,7 +63,15 @@
           <q-toolbar-title>
             Enrolled credits: <b>{{total_credits}}</b>
           </q-toolbar-title>
-          <q-btn @click="save()" class="float-right" label="Save results" />
+          <q-btn @click="clear()" 
+            color="negative" 
+            class="float-right" 
+            label="Clear"
+            style="margin-right: 5px"/>
+          <q-btn @click="save()" 
+            color='deep-purple-10' 
+            class="float-right" 
+            label="Save results" />
     </q-toolbar>
       <q-list>
         <Year
@@ -196,11 +207,14 @@ export default {
     }
   },
   methods: {
+    clear() {
+      if(confirm("Are you sure to clear the existing plan"))
+        this.years = [];
+    },
     stripString: function (str, limit) {
       if (str.length <= limit) {
         return str
       }
-
       return str.substr(0, limit) + "..."
     },
     add_year() {
@@ -358,7 +372,7 @@ export default {
     axios
       .get(API_BASE + '/api/major-list')
       .then(response => {
-        this.all_majors = [{label: 'Clear', value: ''}].concat(response.data);
+        this.all_majors = [{label: 'Choose your major', value: ''}].concat(response.data);
       });
     if (localStorage.getItem('years')) {
       if(localStorage.getItem('major'))
