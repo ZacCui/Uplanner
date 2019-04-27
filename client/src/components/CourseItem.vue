@@ -7,11 +7,11 @@
     @mouseover.native="hover()"
     @mouseleave.native="stopHover()"
   >
-		<q-chip small v-if="cores.includes(course.code)" color="primary">
+		<q-chip dense v-if="cores.includes(course.code)" color="primary">
 			Core
 		</q-chip>
 
-		<q-chip small v-if="prereqs.includes(course.code)" color="secondary">
+		<q-chip dense v-if="prereqs.includes(course.code)" color="secondary">
       Prereq
 		</q-chip>
     <q-item-main>
@@ -136,3 +136,10 @@ export default {
   }
 }
 </script>
+
+<style lang="stylus">
+
+  .q-chip
+    margin-right 5px
+
+</style>

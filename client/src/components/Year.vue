@@ -1,7 +1,20 @@
 <template>
   <q-collapsible :label="year.name" :opened="opened">
+    <template slot="header">
+      <q-item-main :label="year.name" />
+      <q-item-side v-if="index == years - 1" right>
+        <q-btn
+          round
+          icon="close"
+          color="negative"
+          @click="deleteYear()"
+        />
+      </q-item-side>
+    </template>
+
     <div style="display: flex; justify-content: center;">
       <Semester
+        :highlight="highlightTerms.includes(semester.name)"
         v-for="(semester, index) in year.semesters"
         :key="index"
         :name="semester.name"
@@ -27,7 +40,10 @@ export default {
     'group',
     'opened',
     'prereqs',
-    'cores'
+    'cores',
+    'index',
+    'years',
+    'highlightTerms'
   ],
   components: {
     Semester
@@ -38,6 +54,9 @@ export default {
     }
   },
   methods: {
+    deleteYear() {
+      this.$emit('deleteYear');
+    },
     hover(code) {
       this.$emit('hoverCourse', code);
     },

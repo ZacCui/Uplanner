@@ -10,6 +10,7 @@
         <q-toolbar-title>
           Course Planner
         </q-toolbar-title>
+        <img src="favicon.ico" />
       </q-toolbar>
     </q-layout-header>
 
@@ -19,7 +20,7 @@
       <!-- major search input -->
       <q-select
         filter
-        v-model="major_search_string"
+        :display-value="stripString(major_search_string, 30)"
         :options="all_majors"
         @input="search_major"
         placeholder="Enter your major here"
@@ -36,6 +37,8 @@
           put: false
         }"
         :move="onMoveCallback"
+        @start="startDragging($event)"
+        @end="stopDragging()"
       >
         <transition-group>
           <CourseItem 
@@ -50,11 +53,19 @@
       </draggable>
     </q-layout-drawer>
 
+    <!-- right panel -->
     <q-page-container>
+      <q-alert color="deep-purple-7" >
+        <div class="text-white">
+          Enrolled credits: {{total_credits}}
+        </div>
+      </q-alert>
       <q-list>
         <Year
           v-for="(year, index) in years"
           :key="index"
+          :index="index"
+          :years="years.length"
           v-model="years[index]"
           :opened="index === 0"
           group="courses"
@@ -62,8 +73,18 @@
           v-on:stopHoverCourse="stop_hover"
           :cores="major_core_courses"
           :prereqs="prereqs"
+          v-on:deleteYear="deleteYear"
+          :highlightTerms="dragging_course_periods"
         />
       </q-list>  
+      <q-btn
+        class="add-btn"
+        round
+        icon="add"
+        color="primary"
+        @click="add_year"
+      >
+      </q-btn>
     </q-page-container>
   </q-layout>
 </template>
@@ -89,6 +110,7 @@ export default {
       major_search_string: "",
       major_core_courses: [],
       hover_course: "",
+      dragging_course_periods: [],
       prereqs: [],
       showLeft: true,
       searchCourse: "",
@@ -104,15 +126,19 @@ export default {
           name: 'Year 1',
           semesters: [
             {
-              name: 'Semester 1',
+              name: 'Summer Term',
               courses: []              
             },
             {
-              name: 'Semester 2',
+              name: 'Term 1',
               courses: []              
             },
             {
-              name: 'Semester 3',
+              name: 'Term 2',
+              courses: []              
+            },
+            {
+              name: 'Term 3',
               courses: []              
             },
           ]
@@ -121,15 +147,19 @@ export default {
           name: 'Year 2',
           semesters: [
             {
-              name: 'Semester 1',
+              name: 'Summer Term',
               courses: []              
             },
             {
-              name: 'Semester 2',
+              name: 'Term 1',
               courses: []              
             },
             {
-              name: 'Semester 3',
+              name: 'Term 2',
+              courses: []              
+            },
+            {
+              name: 'Term 3',
               courses: []              
             },
           ]
@@ -138,15 +168,19 @@ export default {
           name: 'Year 3',
           semesters: [
             {
-              name: 'Semester 1',
+              name: 'Summer Term',
               courses: []              
             },
             {
-              name: 'Semester 2',
+              name: 'Term 1',
               courses: []              
             },
             {
-              name: 'Semester 3',
+              name: 'Term 2',
+              courses: []              
+            },
+            {
+              name: 'Term 3',
               courses: []              
             },
           ]
@@ -155,6 +189,51 @@ export default {
     }
   },
   methods: {
+    stripString: function (str, limit) {
+      if (str.length <= limit) {
+        return str
+      }
+
+      return str.substr(0, limit) + "..."
+    },
+    add_year() {
+      this.years.push({
+        name: 'Year ' + (this.years.length + 1),
+        semesters: [
+          {
+            name: 'Summer Term',
+            courses: []              
+          },
+          {
+            name: 'Term 1',
+            courses: []              
+          },
+          {
+            name: 'Term 2',
+            courses: []              
+          },
+          {
+            name: 'Term 3',
+            courses: []              
+          }
+        ]
+      });
+    },
+    deleteYear() {
+      this.years = this.years.slice(0, this.years.length - 1);
+    },
+    startDragging(evt) {
+      let code = evt.item.querySelector('small').innerText.split(' - ')[0];
+      axios.get(`http://localhost:5000/api/course-detail/${code}`)
+        .then(res => {
+          if(res.data.teaching_period_display)
+            this.dragging_course_periods = 
+              res.data.teaching_period_display.split(', ')
+        });
+    },
+    stopDragging() {
+      this.dragging_course_periods = [];
+    },
     hover(code) {
       let vue = this;
       vue.hover_course = code;
@@ -167,10 +246,10 @@ export default {
             let re = /[A-Z]{4}[0-9]{4}/g;
             if(res.data.enrol_conditions)
               this.prereqs = res.data.enrol_conditions.match(re)
-            if(!this.prereqs)
+            if(!res.data.enrol_conditions || !this.prereqs)
               this.prereqs = [];
           })
-      }, 1000);
+      }, 500);
     },
     stop_hover() {
       this.hover_course = "";
@@ -182,6 +261,9 @@ export default {
         .then(res => {
           this.major_core_courses = res.data.core_courses;
         })
+        .catch(() => {
+          this.major_core_courses = [];
+        })
     },
     // eslint-disable-next-line
     onMoveCallback: function(event) {
@@ -192,29 +274,44 @@ export default {
     }
   },
   computed: {
+    total_credits() {
+      let result = 0;
+      for (const year of this.years) {
+        for (const semester of year.semesters) {
+          for (const c of semester.courses) {
+            if(c.credits)
+              result += parseInt(c.credits)
+          }
+        }
+      }
+      return result;
+    },
     courses: function() {
+      let matched = this.all_courses.filter(course => {
+        if(!this.searchCourse)
+          return false;
+        return course.code.toLowerCase().includes(this.searchCourse.toLowerCase()) ||
+          course.name.toLowerCase().includes(this.searchCourse.toLowerCase());
+      }).slice(0, 10);
+
       let cores = []
       if(this.major_core_courses)
         cores = this.all_courses
           .filter(course => this.major_core_courses.includes(course.code))
           .map(course => {course.core = true; return course});
 
-      cores = cores.concat(this.all_courses
+      let prereq = this.all_courses
         .filter(course => this.prereqs.includes(course.code))
-        .map(course => {course.prereq = true; return course}));
+        .map(course => {course.prereq = true; return course});
 
-      let matched = this.all_courses.filter(course => {
-        if(!this.searchCourse)
-          return false;
-        if(cores.includes(course))
-          return false;
-        return course.code.toLowerCase().includes(this.searchCourse.toLowerCase()) ||
-          course.name.toLowerCase().includes(this.searchCourse.toLowerCase());
-      }).slice(0, 10);
+      let result = matched.concat(prereq).concat(cores);
 
-      let result = cores.concat(matched);
+      let codes = [];
 
       return result.filter(course => {
+        if(codes.includes(course.code))
+          return false;
+        codes.push(course.code);
         let selected = false;
         for (const year of this.years) {
           for (const semester of year.semesters) {
@@ -232,8 +329,7 @@ export default {
             break;
           }
         }
-        
-        return matched && !selected;
+        return !selected;
       });
     }
   },
@@ -243,7 +339,9 @@ export default {
       .then(response => {this.all_courses = response.data;});
     axios
       .get(API_BASE + '/api/major-list')
-      .then(response => {this.all_majors = response.data;});
+      .then(response => {
+        this.all_majors = [{label: 'Clear', value: ''}].concat(response.data);
+      });
   }
 
 }
@@ -252,6 +350,15 @@ export default {
 <style lang="stylus">
   div#modal_content {
     padding: 10px 5px;
+  }
+
+  .add-btn {
+    margin: 10px 20px;
+  }
+
+  img {
+    width: 30px;
+    height: 30px;
   }
 
 </style>

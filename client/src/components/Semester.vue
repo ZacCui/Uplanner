@@ -1,5 +1,5 @@
 <template>
-  <q-card style="width: 400px; min-height: 100px;">
+  <q-card :color="highlight ? 'light' : ''" style="width: 400px; min-height: 100px;">
     <q-card-title>
       {{name}}
     </q-card-title>
@@ -38,7 +38,8 @@ export default {
     'name',    
     'group',
     'prereqs',
-    'cores'
+    'cores',
+    'highlight'
   ],
   components: {
     draggable,
