@@ -11,25 +11,13 @@
         @input="emitChange"
         style="min-height: 100px;"
       >
-        <p v-if="false">Drag a course here</p>
-        <q-item
-          v-else
+        <CourseItem 
           v-for="course in courses"
-          :key = "course.code"
-          highlight
-          separator
-          link       
-        >
-          <q-item-main>
-            <small>{{stripString(courseString(course), 35)}}</small>
-            <q-tooltip anchor="bottom middle" self="top middle">
-              {{courseString(course)}}
-            </q-tooltip>
-          </q-item-main>
-          <q-item-side right>
-            <q-btn dense round flat icon="close" @click="onRemoveCourse(course)" />
-          </q-item-side>
-        </q-item>
+          :key="course.code"
+          :course="course"
+          :isRemoveable="true"
+          :onRemove="onRemoveCourse"
+        />
       </draggable>
     </q-card-main>
   </q-card>
@@ -37,6 +25,7 @@
 
 <script>
 import draggable from 'vuedraggable'
+import CourseItem from '@/components/CourseItem.vue'
 
 export default {
   name: 'Semester',
@@ -46,7 +35,8 @@ export default {
     'group'
   ],
   components: {
-    draggable
+    draggable,
+    CourseItem
   },
   data() {
     return {

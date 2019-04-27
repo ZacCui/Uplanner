@@ -30,19 +30,12 @@
         :move="onMoveCallback"
       >
         <transition-group>
-          <q-item
+          <CourseItem 
             v-for="course in courses"
-            :key = "course.code"
-            highlight
-            separator
-            link
-            @click.native="show"
-          >
-            <small>{{stripString(courseString(course), 40)}}</small>
-            <q-tooltip anchor="bottom middle" self="top middle">
-              {{courseString(course)}}
-            </q-tooltip>
-          </q-item>
+            :key="course.code"
+            :course="course"
+            :lengthLimit="40"
+          />
         </transition-group>
       </draggable>
     </q-layout-drawer>
@@ -65,16 +58,17 @@
 import draggable from 'vuedraggable'
 import axios from 'axios'
 import Year from '@/components/Year.vue'
+import CourseItem from '@/components/CourseItem.vue'
 
 export default {
   name: 'LayoutDefault',
   components: {
     Year,
+    CourseItem,
     draggable
   },
   data () {
     return {
-      showModal: false,
       selected_courses: [],
       showLeft: true,
       searchCourse: "",
@@ -140,12 +134,6 @@ export default {
     }
   },
   methods: {
-    show () {
-      this.$modal.show('course_details');
-    },
-    hide () {
-      this.$modal.hide('course_details');
-    },
     // eslint-disable-next-line
     onMoveCallback: function(event) {
       if(event.from === event.to){
