@@ -13,8 +13,16 @@
       </q-toolbar>
     </q-layout-header>
 
+    <!-- course detail modal --> 
+    <modal name="course_details" @close="showModal = false">
+      <h3 slot="header">test</h3>
+    </modal>
+
     <!-- Left Side Drawer -->
     <q-layout-drawer side="left" v-model="showLeft">    
+      <q-input v-model="searchCourse" float-label="Search Course" 
+        placeholder="Enter course name or course code" />
+
       <draggable v-model="courses" group="courses">
         <transition-group>
           <q-item
@@ -23,6 +31,7 @@
             highlight
             separator
             link
+            @click.native="show"
           >
             <small>{{stripString(courseString(course), 40)}}</small>
             <q-tooltip anchor="bottom middle" self="top middle">
@@ -102,6 +111,7 @@
 
 <script>
 import draggable from 'vuedraggable'
+import axios from 'axios';
 
 export default {
   name: 'LayoutDefault',
@@ -110,20 +120,14 @@ export default {
   },
   data () {
     return {
+      showModal: false,
+      selected_courses: [],
       showLeft: true,
       searchCourse: "",
-      courses: [
+      all_courses: [
         {
-          code: "INFO1000",
-          name: "Introduction to Programming"
-        },
-        {
-          code: "INFO1001",
-          name: "Introduction to Programming 1"
-        },
-        {
-          code: "INFO1002",
-          name: "Introduction to Programming 2 What"
+          code: "Loading",
+          name: ""
         }
       ],
       semester1Courses: [
@@ -132,6 +136,12 @@ export default {
     }
   },
   methods: {
+    show () {
+      this.$modal.show('course_details');
+    },
+    hide () {
+      this.$modal.hide('course_details');
+    },
     courseString: function (course) {
       return `${course.code} - ${course.name}`
     },
@@ -142,7 +152,23 @@ export default {
 
       return str.substr(0, limit) + "..."
     }
+  },
+  computed: {
+    courses: function() {
+      return this.all_courses.filter(course => {
+        return course.code.toLowerCase().includes(this.searchCourse.toLowerCase()) ||
+          course.name.toLowerCase().includes(this.searchCourse.toLowerCase());
+      }).slice(0, 10).filter(course => {
+        return !this.semester1Courses.includes(course);
+      });
+    }
+  },
+  mounted () {
+    axios
+      .get('http://localhost:5000/api/course-list')
+      .then(response => {this.all_courses = response.data;})
   }
+
 }
 </script>
 
