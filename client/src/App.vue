@@ -140,16 +140,6 @@ export default {
         return false
       }        
       return true
-    },
-    courseString: function (course) {
-      return `${course.code} - ${course.name}`
-    },
-    stripString: function (str, limit) {
-      if (str.length <= limit) {
-        return str
-      }
-
-      return str.substr(0, limit) + "..."
     }
   },
   computed: {
