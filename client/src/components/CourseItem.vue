@@ -127,7 +127,7 @@ export default {
       }
 
       axios
-        .get(`http://localhost:5000/api/course-detail/${this.course.code}`)
+        .get(`${this.$config.API_BASE}/course-detail/${this.course.code}`)
         .then(res => {
           this.details = res.data
           // eslint-disable-next-line

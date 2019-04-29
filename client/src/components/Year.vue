@@ -1,5 +1,5 @@
 <template>
-  <q-collapsible :label="year.name" opened="true">
+  <q-collapsible :label="year.name" :opened=true>
     <template slot="header">
       <q-item-main :label="year.name" />
       <q-item-side v-if="index == years - 1" right>
@@ -44,7 +44,6 @@ export default {
   props: [
     'value',
     'group',
-    'opened',
     'prereqs',
     'cores',
     'index',

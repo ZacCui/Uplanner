@@ -1,2 +1,4 @@
 data.json
 webpages*
+client/dist
+*.log

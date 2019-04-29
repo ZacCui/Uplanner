@@ -34,6 +34,7 @@
         v-model="searchCourse" float-label="Search Course" 
         placeholder="Enter course name or course code" />
       <draggable
+        id="course-list" 
         v-model="courses"
         :group="{
           name: 'courses',
@@ -80,7 +81,6 @@
           :index="index"
           :years="years.length"
           :value="_year"
-          :opened="index === 0"
           group="courses"
           v-on:hoverCourse="hover"
           v-on:stopHoverCourse="stop_hover"
@@ -107,11 +107,12 @@
 </template>
 
 <script>
-var API_BASE = 'http://localhost:5000'
 import draggable from 'vuedraggable'
 import axios from 'axios'
 import Year from '@/components/Year.vue'
 import CourseItem from '@/components/CourseItem.vue'
+import { scroll } from 'quasar'
+const { getScrollTarget, setScrollPosition } = scroll
 
 
 export default {
@@ -245,7 +246,7 @@ export default {
     },
     startDragging(evt) {
       let code = evt.item.querySelector('small').innerText.split(' - ')[0];
-      axios.get(`http://localhost:5000/api/course-detail/${code}`)
+      axios.get(`${this.$config.API_BASE}/course-detail/${code}`)
         .then(res => {
           if(res.data.teaching_period_display)
             this.dragging_course_periods = 
@@ -262,11 +263,14 @@ export default {
         if(vue.hover_course != code)
           return;
         axios
-          .get(`http://localhost:5000/api/course-detail/${code}`)
+          .get(`${this.$config.API_BASE}/course-detail/${code}`)
           .then(res => {
             let re = /[A-Z]{4}[0-9]{4}/g;
-            if(res.data.enrol_conditions)
+            if(res.data.enrol_conditions) {
+              let target = getScrollTarget(document.getElementById('course-list'));
               this.prereqs = res.data.enrol_conditions.match(re)
+              setScrollPosition(target, 0, 500)
+            }
             if(!res.data.enrol_conditions || !this.prereqs)
               this.prereqs = [];
           })
@@ -278,7 +282,7 @@ export default {
     search_major(terms) {
       this.major_search_string = terms;
       let code = terms.split(' - ')[0];
-      axios.get(API_BASE + '/api/major-detail/' + code)
+      axios.get(this.$config.API_BASE + '/major-detail/' + code)
         .then(res => {
           this.major_core_courses = res.data.core_courses;
         })
@@ -367,10 +371,10 @@ export default {
   },
   mounted () {
     axios
-      .get(API_BASE + '/api/course-list')
+      .get(this.$config.API_BASE + '/course-list')
       .then(response => {this.all_courses = response.data;});
     axios
-      .get(API_BASE + '/api/major-list')
+      .get(this.$config.API_BASE + '/major-list')
       .then(response => {
         this.all_majors = [{label: 'Choose your major', value: ''}].concat(response.data);
       });
