@@ -3,3 +3,4 @@ webpages*
 client/dist
 *.log
 /.vscode
+.vscode/
