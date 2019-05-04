@@ -2,3 +2,5 @@ data.json
 webpages*
 client/dist
 *.log
+/.vscode
+.vscode/

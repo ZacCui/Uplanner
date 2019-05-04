@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHr LpR lFf">
+  <q-layout view="hHr LpR lFf" v-touch:moving="movingHandler">
     <q-layout-header>
       <q-toolbar>
         <q-btn
@@ -124,6 +124,7 @@ export default {
   },
   data () {
     return {
+      fingerIcon: document.createElement("div"),
       loaded_local_storage: false,
       selected_courses: [],
       major_search_string: "",
@@ -208,6 +209,12 @@ export default {
     }
   },
   methods: {
+    movingHandler(event) {
+      const fingerX = event.changedTouches[0].pageX;
+      const fingerY = event.changedTouches[0].pageY;
+      this.fingerIcon.style.setProperty("top", fingerY + "px");
+      this.fingerIcon.style.setProperty("left", fingerX + "px");
+    },
     clear() {
       if(confirm("Are you sure to clear the existing plan"))
         this.years = [];
@@ -252,9 +259,27 @@ export default {
             this.dragging_course_periods = 
               res.data.teaching_period_display.split(', ')
         });
+      if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        // We are going to check if we are running a mobile system. If mobile,
+        // hide the left drawer when dragging.
+        this.showLeft = false;
+        // Since draggable is not implemented on mobile, we have to fake it on
+        // the system.
+        if (!this.fingerIconOn) {
+          this.fingerIconOn = true;
+          this.fingerIcon.textContent = code;
+          this.fingerIcon.hidden = false;
+          document.body.appendChild(this.fingerIcon);
+        }
+      }
     },
     stopDragging() {
       this.dragging_course_periods = [];
+      // Hide the finger Icon we have dragged
+      if (this.fingerIconOn) {
+        this.fingerIconOn = false;
+        this.fingerIcon.hidden = true;
+      }
     },
     hover(code) {
       let vue = this;
@@ -388,6 +413,8 @@ export default {
         localStorage.removeItem('years');
       }
     }
+    this.fingerIcon = document.createElement("div");
+    this.fingerIcon.setAttribute("class", "hover-item");
   },
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <q-card :color="highlight ? 'light' : ''" style="width: 400px; min-height: 100px;">
+  <q-card :color="highlight ? 'light' : ''" class="term-card">
     <q-card-title>
       {{name}}
     </q-card-title>
