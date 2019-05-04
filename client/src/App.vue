@@ -267,7 +267,8 @@ export default {
         // the system.
         if (!this.fingerIconOn) {
           this.fingerIconOn = true;
-          this.fingerIcon.textContent = "sdfoidspsdf";
+          this.fingerIcon.textContent = code;
+          this.fingerIcon.hidden = false;
           document.body.appendChild(this.fingerIcon);
         }
       }
