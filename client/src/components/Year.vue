@@ -12,7 +12,7 @@
       </q-item-side>
     </template>
 
-    <div style="display: flex; justify-content: center;">
+    <div class="year-wrapper">
       <Semester
         :highlight="highlightTerms.includes(semester.name)"
         v-for="(semester, index) in year.semesters"
@@ -23,7 +23,6 @@
         :value="semester.courses"
         v-on:input="emitChange"
         :courses="semester.courses"
-        style="margin-right: 20px;"
         v-on:hoverCourse="hover"
         v-on:stopHoverCourse="stopHover()"
         :prereqs="prereqs"
@@ -81,3 +80,15 @@ export default {
   }
 }
 </script>
+
+
+<style lang="stylus">
+  div.year-wrapper
+    display: flex
+    flex-flow: column
+    justify-content: center
+  
+  @media screen and (min-width: 768px)
+    div.year-wrapper
+      flex-flow: row;
+</style>
