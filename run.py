@@ -13,9 +13,9 @@ majors = json.load(open('major.json'))
 
 @app.route('/api/course-list')
 def course_list():
-    return jsonify([
+    return jsonify(sorted([
         {"name":course['name'], 'code':code, 'credits':course['credit_points']}
-        for code,course in courses.items()])
+        for code,course in courses.items()], key=lambda course: (int(course['code'][4:8]), course['code'][:4])))
 
 @app.route('/api/major-list')
 def major_list():
